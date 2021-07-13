@@ -105,7 +105,7 @@ namespace EverythingToolbar
         {
             get
             {
-                return _currentFilter ?? FilterLoader.Instance.DefaultFilters[0];
+                return _currentFilter ?? FilterLoader.Instance.GetLastFilter();
             }
             set
             {
@@ -221,7 +221,7 @@ namespace EverythingToolbar
                     bool regEx = CurrentFilter.IsRegExEnabled ?? Properties.Settings.Default.isRegExEnabled;
 
                     string search = CurrentFilter.Search + (CurrentFilter.Search.Length > 0 && !regEx ? " " : "") + SearchTerm;
-                    foreach (Filter filter in FilterLoader.Instance.UserFilters)
+                    foreach (Filter filter in FilterLoader.Instance.DefaultUserFilters)
                     {
                         search = search.Replace(filter.Macro + ":", filter.Search + " ");
                     }
@@ -274,7 +274,16 @@ namespace EverythingToolbar
         public void Reset()
         {
             SearchTerm = null;
-            CurrentFilter = FilterLoader.Instance.DefaultFilters[0];
+
+            if (Properties.Settings.Default.isRememberFilter)
+            {
+                Properties.Settings.Default.lastFilter = CurrentFilter.Name;
+                Properties.Settings.Default.Save();
+            }
+            else
+            {
+                CurrentFilter = FilterLoader.Instance.DefaultFilters[0];
+            }
         }
 
         public void CycleFilters(int offset = 1)

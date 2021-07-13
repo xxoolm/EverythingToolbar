@@ -673,6 +673,24 @@ namespace EverythingToolbar.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Remember filter.
+        /// </summary>
+        public static string SettingsRememberFilter {
+            get {
+                return ResourceManager.GetString("SettingsRememberFilter", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Replace start menu search (experimental).
+        /// </summary>
+        public static string SettingsReplaceStartMenuSearch {
+            get {
+                return ResourceManager.GetString("SettingsReplaceStartMenuSearch", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Rules....
         /// </summary>
         public static string SettingsRules {

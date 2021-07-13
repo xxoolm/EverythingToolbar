@@ -61,7 +61,7 @@ namespace EverythingToolbar.Helpers
         }
         
 
-        private readonly ObservableCollection<Filter> defaultUserFilters = new ObservableCollection<Filter>()
+        public readonly ObservableCollection<Filter> DefaultUserFilters = new ObservableCollection<Filter>()
         {
             new Filter {
                 Name = Properties.Resources.UserFilterAudio,
@@ -124,6 +124,7 @@ namespace EverythingToolbar.Helpers
                 Search = "ext:3g2;3gp;3gp2;3gpp;amr;amv;asf;avi;bdmv;bik;d2v;divx;drc;dsa;dsm;dss;dsv;evo;f4v;flc;fli;flic;flv;hdmov;ifo;ivf;m1v;m2p;m2t;m2ts;m2v;m4b;m4p;m4v;mkv;mp2v;mp4;mp4v;mpe;mpeg;mpg;mpls;mpv2;mpv4;mov;mts;ogm;ogv;pss;pva;qt;ram;ratdvd;rm;rmm;rmvb;roq;rpm;smil;smk;swf;tp;tpr;ts;vob;vp6;webm;wm;wmp;wmv"
             }
         };
+        private ObservableCollection<Filter> userFiltersCache;
         public ObservableCollection<Filter> UserFilters
         { 
             get
@@ -136,11 +137,11 @@ namespace EverythingToolbar.Helpers
                 {
                     if (Properties.Settings.Default.isImportFilters)
                     {
-                        return LoadFilters();
+                        return userFiltersCache ?? LoadFilters();
                     }
                     else
                     {
-                        return defaultUserFilters;
+                        return DefaultUserFilters;
                     }
                 }
             }
@@ -177,13 +178,13 @@ namespace EverythingToolbar.Helpers
                 RefreshFilters();
         }
 
-        void RefreshFilters()
+        private void RefreshFilters()
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("DefaultFilters"));
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("UserFilters"));
         }
 
-        ObservableCollection<Filter> LoadFilters()
+        private ObservableCollection<Filter> LoadFilters()
         {
             var filters = new ObservableCollection<Filter>();
 
@@ -211,7 +212,7 @@ namespace EverythingToolbar.Helpers
                     {
                         Properties.Settings.Default.isImportFilters = false;
                         Properties.Settings.Default.Save();
-                        return defaultUserFilters;
+                        return DefaultUserFilters;
                     }
                 }
             }
@@ -262,13 +263,14 @@ namespace EverythingToolbar.Helpers
             catch (Exception e)
             {
                 ToolbarLogger.GetLogger("EverythingToolbar").Error(e, "Parsing Filters.csv failed.");
-                return defaultUserFilters;
+                return DefaultUserFilters;
             }
 
+            userFiltersCache = filters;
             return filters;
         }
 
-        public void CreateFileWatcher()
+        private void CreateFileWatcher()
         {
             if (!File.Exists(Properties.Settings.Default.filtersPath))
                 return;
@@ -290,12 +292,34 @@ namespace EverythingToolbar.Helpers
 
         private void OnFileRenamed(object sender, RenamedEventArgs e)
         {
+            LoadFilters();
             RefreshFilters();
         }
 
         private void OnFileChanged(object source, FileSystemEventArgs e)
         {
+            LoadFilters();
             RefreshFilters();
+        }
+
+        public Filter GetLastFilter()
+        {
+            if (Properties.Settings.Default.isRememberFilter)
+            {
+                foreach (Filter filter in DefaultFilters)
+                {
+                    if (filter.Name == Properties.Settings.Default.lastFilter)
+                        return filter;
+                }
+
+                foreach (Filter filter in UserFilters)
+                {
+                    if (filter.Name == Properties.Settings.Default.lastFilter)
+                        return filter;
+                }
+            }
+
+            return DefaultFilters[0];
         }
     }
 }
