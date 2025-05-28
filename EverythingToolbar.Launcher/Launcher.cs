@@ -1,184 +1,185 @@
-﻿using Microsoft.Win32;
+using EverythingToolbar.Helpers;
+using Microsoft.Xaml.Behaviors;
+using NHotkey;
 using System;
-using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
-using System.Globalization;
 using System.IO;
-using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Interop;
+using System.Windows.Forms;
+using System.Windows.Shell;
+using Application = System.Windows.Application;
+using MessageBox = System.Windows.MessageBox;
+using Timer = System.Timers.Timer;
 
 namespace EverythingToolbar.Launcher
 {
-    class Launcher
+    internal static class Launcher
     {
-        public partial class LauncherWindow : Window
+        private const string ToggleEventName = "EverythingToolbarToggleEvent";
+        private const string StartSetupAssistantEventName = "StartSetupAssistantEvent";
+        private const string MutexName = "EverythingToolbar.Launcher";
+        private static bool _searchWindowRecentlyClosed;
+        private static Timer _searchWindowRecentlyClosedTimer;
+        private static NotifyIcon _notifyIcon;
+
+        private class LauncherWindow : Window
         {
-            static IntPtr handle;
-
-            [DllImport("user32.dll")]
-            [return: MarshalAs(UnmanagedType.Bool)]
-            private static extern bool SetForegroundWindow(IntPtr hWnd);
-
-            public LauncherWindow()
+            public LauncherWindow(NotifyIcon icon)
             {
+                ToolbarLogger.Initialize("Launcher");
+
+                _notifyIcon = icon;
+                SetupJumpList();
+
+                _searchWindowRecentlyClosedTimer = new Timer(500);
+                _searchWindowRecentlyClosedTimer.AutoReset = false;
+                _searchWindowRecentlyClosedTimer.Elapsed += (s, e) => { _searchWindowRecentlyClosed = false; };
+
                 Width = 0;
                 Height = 0;
                 ShowInTaskbar = false;
                 Visibility = Visibility.Hidden;
                 ResizeMode = ResizeMode.NoResize;
                 WindowStyle = WindowStyle.None;
-                Content = new ToolbarControl();
-                Loaded += OnLoaded;
+
+                TaskbarStateManager.Instance.IsIcon = true;
+
+                var behavior = new SearchWindowPlacement();
+                Interaction.GetBehaviors(SearchWindow.Instance).Add(behavior);
 
                 StartToggleListener();
-                if (!File.Exists(Utils.GetTaskbarShortcutPath()))
-                    new TaskbarPinGuide().Show();
+
+                if (!ToolbarSettings.User.IsSetupAssistantDisabled && !File.Exists(Utils.GetTaskbarShortcutPath()))
+                    new SetupAssistant(icon).Show();
+
+                ShortcutManager.Instance.Initialize(FocusSearchBox);
+
+                if (ToolbarSettings.User.IsReplaceStartMenuSearch)
+                    StartMenuIntegration.Instance.Enable();
+
+                SearchWindow.Instance.Hiding += OnSearchWindowHiding;
             }
 
-            private void OnLoaded(object sender, RoutedEventArgs e)
+            private void SetupJumpList()
             {
-                handle = ((HwndSource)PresentationSource.FromVisual(this)).Handle;
+                var jumpList = new JumpList();
+                jumpList.JumpItems.Add(new JumpTask
+                {
+                    Title = Properties.Resources.ContextMenuRunSetupAssistant,
+                    Description = Properties.Resources.ContextMenuRunSetupAssistant,
+                    ApplicationPath = Environment.ProcessPath,
+                    Arguments = "--run-setup-assistant"
+                });
+                JumpList.SetJumpList(Application.Current, jumpList);
+            }
+
+            private static void OnSearchWindowHiding(object sender, EventArgs e)
+            {
+                _searchWindowRecentlyClosed = true;
+                _searchWindowRecentlyClosedTimer.Start();
+            }
+
+            private static void FocusSearchBox(object sender, HotkeyEventArgs e)
+            {
+                SearchWindow.Instance.Toggle();
             }
 
             private void StartToggleListener()
             {
                 Task.Factory.StartNew(() =>
                 {
-                    EventWaitHandle wh = new EventWaitHandle(false, EventResetMode.AutoReset, "EverythingToolbarToggleEvent");
+                    var wh = new EventWaitHandle(false, EventResetMode.AutoReset, ToggleEventName);
                     while (true)
                     {
                         wh.WaitOne();
-                        if (EverythingSearch.Instance.DelayedOpened)
-                        {
-                            EverythingSearch.Instance.SearchTerm = null;
-                        }
-                        else
-                        {
-                            Dispatcher?.Invoke(() =>
-                            {
-                                SetPosition();
-                            });
-                            SetForegroundWindow(handle);
-                            EverythingSearch.Instance.SearchTerm = "";
-                        }
+                        ToggleWindow();
+                    }
+                });
+                Task.Factory.StartNew(() =>
+                {
+                    var wh = new EventWaitHandle(false, EventResetMode.AutoReset, StartSetupAssistantEventName);
+                    while (true)
+                    {
+                        wh.WaitOne();
+                        OpenSetupAssistant();
                     }
                 });
             }
 
-            private void SetPosition()
+            private void ToggleWindow()
             {
-                Rectangle taskbar = FindDockedTaskBars()[0];
+                // Prevent search window from reappearing after clicking the icon to close
+                if (_searchWindowRecentlyClosed)
+                    return;
 
-                if (taskbar.Y + taskbar.Height == System.Windows.Forms.Screen.PrimaryScreen.Bounds.Height)
+                Dispatcher?.Invoke(() =>
                 {
-                    Top = taskbar.Y;
-                    SearchResultsPopup.taskbarEdge = CSDeskBand.Edge.Bottom;
-                }
-                else
-                {
-                    Top = taskbar.Height;
-                    SearchResultsPopup.taskbarEdge = CSDeskBand.Edge.Top;
-                }
-
-                using (RegistryKey key = Registry.CurrentUser.OpenSubKey(@"Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced"))
-                {
-                    object registryValueObject = key?.GetValue("TaskbarAl");
-                    if (registryValueObject != null && (int)registryValueObject == 1)
-                    {
-                        Left = taskbar.Width / 2 - Properties.Settings.Default.popupSize.Width / 2;
-                    }
-                    else
-                    {
-                        if (CultureInfo.CurrentCulture.TextInfo.IsRightToLeft)
-                        {
-                            Left = System.Windows.Forms.Screen.PrimaryScreen.WorkingArea.Width - 1;
-                        }
-                        else
-                        {
-                            Left = 0;
-                        }
-                    }
-                }
+                    SearchWindow.Instance.Toggle();
+                });
             }
 
-            private static List<Rectangle> FindDockedTaskBars()
+            private void OpenSetupAssistant()
             {
-                List<Rectangle> dockedRects = new List<Rectangle>();
-                foreach (var screen in System.Windows.Forms.Screen.AllScreens)
+                Dispatcher?.Invoke(() =>
                 {
-                    if (!screen.Bounds.Equals(screen.WorkingArea))
-                    {
-                        Rectangle rect = new Rectangle();
-
-                        var leftDockedWidth = Math.Abs((Math.Abs(screen.Bounds.Left) - Math.Abs(screen.WorkingArea.Left)));
-                        var topDockedHeight = Math.Abs((Math.Abs(screen.Bounds.Top) - Math.Abs(screen.WorkingArea.Top)));
-                        var rightDockedWidth = ((screen.Bounds.Width - leftDockedWidth) - screen.WorkingArea.Width);
-                        var bottomDockedHeight = ((screen.Bounds.Height - topDockedHeight) - screen.WorkingArea.Height);
-
-                        if ((leftDockedWidth > 0))
-                        {
-                            rect.X = screen.Bounds.Left;
-                            rect.Y = screen.Bounds.Top;
-                            rect.Width = leftDockedWidth;
-                            rect.Height = screen.Bounds.Height;
-                        }
-                        else if ((rightDockedWidth > 0))
-                        {
-                            rect.X = screen.WorkingArea.Right;
-                            rect.Y = screen.Bounds.Top;
-                            rect.Width = rightDockedWidth;
-                            rect.Height = screen.Bounds.Height;
-                        }
-                        else if ((topDockedHeight > 0))
-                        {
-                            rect.X = screen.WorkingArea.Left;
-                            rect.Y = screen.Bounds.Top;
-                            rect.Width = screen.WorkingArea.Width;
-                            rect.Height = topDockedHeight;
-                        }
-                        else if ((bottomDockedHeight > 0))
-                        {
-                            rect.X = screen.WorkingArea.Left;
-                            rect.Y = screen.WorkingArea.Bottom;
-                            rect.Width = screen.WorkingArea.Width;
-                            rect.Height = bottomDockedHeight;
-                        }
-
-                        dockedRects.Add(rect);
-                    }
-                }
-
-                return dockedRects;
+                    new SetupAssistant(_notifyIcon).Show();
+                });
             }
         }
 
-        [STAThread]
-        static void Main()
+        private static string GetIconPath()
         {
-            using (Mutex mutex = new Mutex(false, "EverythingToolbar.Launcher", out bool createdNew))
+            var processPath = Process.GetCurrentProcess().MainModule?.FileName ?? string.Empty;
+
+            if (string.IsNullOrEmpty(ToolbarSettings.User.IconName))
+                return Path.Combine(processPath, "..", "Icons", "Medium.ico");
+
+            return Path.Combine(processPath, "..", ToolbarSettings.User.IconName);
+        }
+
+        [STAThread]
+        private static void Main(string[] args)
+        {
+            using (new Mutex(false, MutexName, out var createdNew))
             {
                 if (createdNew)
                 {
-                    using (System.Windows.Forms.NotifyIcon icon = new System.Windows.Forms.NotifyIcon())
+                    using (var trayIcon = new NotifyIcon())
                     {
-                        Application app = new Application();
-                        icon.Icon = Icon.ExtractAssociatedIcon(Utils.GetThemedIconPath());
-                        icon.ContextMenu = new System.Windows.Forms.ContextMenu(new System.Windows.Forms.MenuItem[] {
-                            new System.Windows.Forms.MenuItem("Run setup assistant", (s, e) => { new TaskbarPinGuide().Show(); }),
-                            new System.Windows.Forms.MenuItem("Quit", (s, e) => { app.Shutdown(); })
-                        });
-                        icon.Visible = true;
-                        app.Run(new LauncherWindow());
+                        var app = new Application();
+                        trayIcon.Icon = Icon.ExtractAssociatedIcon(GetIconPath());
+                        trayIcon.ContextMenuStrip = new ContextMenuStrip();
+                        var setupItem = new ToolStripMenuItem(
+                            "Setup Assistant",
+                            null,
+                            (s, e) => { new SetupAssistant(trayIcon).Show(); }
+                        );
+                        trayIcon.ContextMenuStrip.Items.Add(setupItem);
+                        var quitItem = new ToolStripMenuItem(
+                            "Quit",
+                            null,
+                            (s, e) => { app.Shutdown(); }
+                        );
+                        trayIcon.ContextMenuStrip.Items.Add(quitItem);
+                        trayIcon.Visible = ToolbarSettings.User.IsTrayIconEnabled;
+                        app.Run(new LauncherWindow(trayIcon));
                     }
                 }
                 else
                 {
                     try
                     {
-                        EventWaitHandle.OpenExisting("EverythingToolbarToggleEvent").Set();
+                        if (args.Length > 0 && args[0] == "--run-setup-assistant")
+                        {
+                            EventWaitHandle.OpenExisting(StartSetupAssistantEventName).Set();
+                        }
+                        else
+                        {
+                            EventWaitHandle.OpenExisting(ToggleEventName).Set();
+                        }
                     }
                     catch (Exception ex)
                     {

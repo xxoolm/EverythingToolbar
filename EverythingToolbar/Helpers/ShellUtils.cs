@@ -1,4 +1,4 @@
-﻿using Microsoft.Win32;
+﻿using NLog;
 using System;
 using System.Diagnostics;
 using System.IO;
@@ -8,6 +8,10 @@ namespace EverythingToolbar.Helpers
 {
     class ShellUtils
     {
+        private static readonly ILogger Logger = ToolbarLogger.GetLogger<ShellUtils>();
+
+        private ShellUtils() { }
+
         [DllImport("shell32.dll", CharSet = CharSet.Auto)]
         static extern bool ShellExecuteEx(ref SHELLEXECUTEINFO lpExecInfo);
 
@@ -38,7 +42,7 @@ namespace EverythingToolbar.Helpers
 
         public static void ShowFileProperties(string path)
         {
-            SHELLEXECUTEINFO info = new SHELLEXECUTEINFO();
+            var info = new SHELLEXECUTEINFO();
             info.cbSize = Marshal.SizeOf(info);
             info.lpVerb = "properties";
             info.lpFile = path;
@@ -95,7 +99,6 @@ namespace EverythingToolbar.Helpers
         public static void CreateProcessFromCommandLine(string commandLine, string workingDirectory = null)
         {
             var si = new STARTUPINFO();
-            var pi = new PROCESS_INFORMATION();
 
             CreateProcess(
                 null,
@@ -107,7 +110,7 @@ namespace EverythingToolbar.Helpers
                 IntPtr.Zero,
                 workingDirectory,
                 ref si,
-                out pi);
+                out var _);
         }
 
         public static void OpenWithDialog(string path)
@@ -117,18 +120,30 @@ namespace EverythingToolbar.Helpers
             Process.Start("rundll32.exe", args);
         }
 
-        public static void OpenPathWithDefaultApp(string path)
-        {
-            var shell = (string)Registry.ClassesRoot.OpenSubKey(@"Directory\shell")?.GetValue("");
-            var command = Registry.ClassesRoot.OpenSubKey(@"Directory\shell\" + shell + @"\command")?.GetValue("");
-            if (command != null)
-            {
-                string parent = Path.GetDirectoryName(path);
-                CreateProcessFromCommandLine(command.ToString().Replace("%1", parent));
-                return;
-            }
+        [DllImport("shell32.dll", SetLastError = true)]
+        private static extern int SHOpenFolderAndSelectItems(IntPtr pidlFolder, uint cidl, [In, MarshalAs(UnmanagedType.LPArray)] IntPtr[] apidl, uint dwFlags);
 
-            CreateProcessFromCommandLine("explorer.exe /select,\"" + path + "\"");
+        [DllImport("shell32.dll", SetLastError = true)]
+        private static extern void SHParseDisplayName([MarshalAs(UnmanagedType.LPWStr)] string name, IntPtr bindingContext, [Out] out IntPtr pidl, uint sfgaoIn, [Out] out uint psfgaoOut);
+
+        public static void OpenParentFolderAndSelect(string path)
+        {
+            var parentFolder = Path.GetDirectoryName(path);
+            if (string.IsNullOrEmpty(parentFolder))
+                return;
+
+            SHParseDisplayName(parentFolder, IntPtr.Zero, out var nativeFolder, 0, out _);
+            if (nativeFolder == IntPtr.Zero)
+                return;
+
+            var itemToSelect = Path.GetFileName(path);
+            SHParseDisplayName(Path.Combine(parentFolder, itemToSelect), IntPtr.Zero, out var nativeFile, 0, out _);
+
+            var fileArray = new[] { nativeFile == IntPtr.Zero ? nativeFolder : nativeFile };
+            SHOpenFolderAndSelectItems(nativeFolder, (uint)fileArray.Length, fileArray, 0);
+
+            Marshal.FreeCoTaskMem(nativeFolder);
+            if (nativeFile != IntPtr.Zero) Marshal.FreeCoTaskMem(nativeFile);
         }
     }
 }

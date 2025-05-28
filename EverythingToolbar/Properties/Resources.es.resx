@@ -150,6 +150,9 @@
   <data name="ContextMenuOpenPath" xml:space="preserve">
     <value>Abrir ubicación</value>
   </data>
+  <data name="ContextMenuOpenWinContext" xml:space="preserve">
+    <value>Mostrar más opciones</value>
+  </data>
   <data name="ContextMenuOpenWith" xml:space="preserve">
     <value>Abrir con...</value>
   </data>
@@ -184,13 +187,13 @@
     <value>Compacta</value>
   </data>
   <data name="ItemTemplateCompactDetailed" xml:space="preserve">
-    <value>Compacta (detallado)</value>
+    <value>Compacta (detallada)</value>
   </data>
   <data name="ItemTemplateNormal" xml:space="preserve">
     <value>Normal</value>
   </data>
   <data name="ItemTemplateNormalDetailed" xml:space="preserve">
-    <value>Normal (detallado)</value>
+    <value>Normal (detallada)</value>
   </data>
   <data name="KeyAlt" xml:space="preserve">
     <value>Alt</value>
@@ -232,13 +235,13 @@
     <value>Error al ejecutar el comando</value>
   </data>
   <data name="MessageBoxFastSortUnavailable" xml:space="preserve">
-    <value>Para utilizar este método de ordenar tiene que tener ordenar rápido activado. Puede activarlo en los ajustes de Everything.</value>
+    <value>Para utilizar este método de clasificación tiene que tener activada la clasificación rápida. Se puede habilitar en la configuración de Everything.</value>
   </data>
   <data name="MessageBoxFastSortUnavailableTitle" xml:space="preserve">
-    <value>Ordenar rápido no activado</value>
+    <value>Clasificación rápida no activada</value>
   </data>
   <data name="MessageBoxRegExInvalid" xml:space="preserve">
-    <value>Al menos una expresión regular es inválida.</value>
+    <value>Al menos una expresión regular no es válida.</value>
   </data>
   <data name="MessageBoxRuleNameEmpty" xml:space="preserve">
     <value>Los nombres de reglas no pueden estar vacíos.</value>
@@ -247,7 +250,7 @@
     <value>Por favor seleccione Everything.exe...</value>
   </data>
   <data name="MessageBoxSelectFiltersCsv" xml:space="preserve">
-    <value>Por favor seleccione el archivo Filters.csv. Por defecto puede encontrarse en %APPDATA%\Everything. Su ubicación puede ser diferente dependiendo de la instalación. Si el archivo no existe para usted eso significa que no realizó ningún cambio a los filtros predeterminados de Everything.</value>
+    <value>Seleccione el archivo Filters.csv. Por defecto se encuentra en %APPDATA%\Everything. Su ubicación puede ser diferente dependiendo de su instalación. Si el archivo no existe, significa que no ha realizado ningún cambio en los filtros por defecto de Everything.</value>
   </data>
   <data name="MessageBoxSelectFiltersCsvTitle" xml:space="preserve">
     <value>Filters.csv no encontrado</value>
@@ -277,12 +280,12 @@
     <value>Tipo</value>
   </data>
   <data name="RulesWindowText" xml:space="preserve">
-    <value>Use %file%, %filename% y %path% como sustitutos en los comandos.</value>
+    <value>Utilice %file%, %filename% y %path% como marcadores de posición en los comandos.</value>
   </data>
   <data name="RulesWindowTitle" xml:space="preserve">
     <value>Reglas</value>
   </data>
-  <data name="SearchBoxWatermark" xml:space="preserve">
+  <data name="TextBoxWatermark" xml:space="preserve">
     <value>Buscar con Everything</value>
   </data>
   <data name="SearchResult" xml:space="preserve">
@@ -330,11 +333,14 @@
   <data name="SettingsRules" xml:space="preserve">
     <value>Reglas...</value>
   </data>
+  <data name="SettingsSetInstanceName" xml:space="preserve">
+    <value>Establecer el nombre de la petición...</value>
+  </data>
   <data name="SettingsShowQuickToggles" xml:space="preserve">
-    <value>Show quick toggles</value>
+    <value>Mostrar botones de acceso rápido</value>
   </data>
   <data name="SettingsShowResultsCount" xml:space="preserve">
-    <value>Mostrar recuento de resultados</value>
+    <value>Mostrar número de resultados</value>
   </data>
   <data name="SettingsSortBy" xml:space="preserve">
     <value>Ordenar por</value>
@@ -342,8 +348,11 @@
   <data name="SettingsTheme" xml:space="preserve">
     <value>Tema</value>
   </data>
+  <data name="SettingsThemeAuto" xml:space="preserve">
+    <value>Sincronizar tema</value>
+  </data>
   <data name="SettingsThumbnailsEnabled" xml:space="preserve">
-    <value>Enable thumbnails</value>
+    <value>Habilitar miniaturas</value>
   </data>
   <data name="SettingsUseEverythingFilters" xml:space="preserve">
     <value>Usar filtros de Everything</value>
@@ -355,94 +364,52 @@
     <value>Aceptar</value>
   </data>
   <data name="ShortcutWindowTitle" xml:space="preserve">
-    <value>Introducir atajo de teclado...</value>
+    <value>Introducir acceso directo...</value>
   </data>
-  <data name="SortByAttributesAscending" xml:space="preserve">
-    <value>Atributos ascendiente</value>
+  <data name="SortByAttributes" xml:space="preserve">
+    <value>Attributes</value>
   </data>
-  <data name="SortByAttributesDescending" xml:space="preserve">
-    <value>Atributos descendiente</value>
+  <data name="SortByDateAccessed" xml:space="preserve">
+    <value>Date accessed</value>
   </data>
-  <data name="SortByDateAccessedAscending" xml:space="preserve">
-    <value>Fecha de acceso ascendiente</value>
+  <data name="SortByDateCreated" xml:space="preserve">
+    <value>Date created</value>
   </data>
-  <data name="SortByDateAccessedDescending" xml:space="preserve">
-    <value>Fecha de acceso descendiente</value>
+  <data name="SortByDateModified" xml:space="preserve">
+    <value>Date modified</value>
   </data>
-  <data name="SortByDateCreatedAscending" xml:space="preserve">
-    <value>Fecha de creación ascendiente</value>
+  <data name="SortByDateRecentlyChanged" xml:space="preserve">
+    <value>Date recently changed</value>
   </data>
-  <data name="SortByDateCreatedDescending" xml:space="preserve">
-    <value>Fecha de creación descendiente</value>
+  <data name="SortByDateRun" xml:space="preserve">
+    <value>Date run</value>
   </data>
-  <data name="SortByDateModifiedAscending" xml:space="preserve">
-    <value>Fecha de modificación ascendiente</value>
+  <data name="SortByExtension" xml:space="preserve">
+    <value>Extension</value>
   </data>
-  <data name="SortByDateModifiedDescending" xml:space="preserve">
-    <value>Fecha de modificación descendiente</value>
+  <data name="SortByFileListFilename" xml:space="preserve">
+    <value>File list filename</value>
   </data>
-  <data name="SortByDateRecentlyChangedAscending" xml:space="preserve">
-    <value>Fecha de cambio reciente ascendiente</value>
+  <data name="SortByName" xml:space="preserve">
+    <value>Name</value>
   </data>
-  <data name="SortByDateRecentlyChangedDescending" xml:space="preserve">
-    <value>Fecha de cambio reciente descendiente</value>
+  <data name="SortByPath" xml:space="preserve">
+    <value>Path</value>
   </data>
-  <data name="SortByDateRunAscending" xml:space="preserve">
-    <value>Fecha de ejecución ascendiente</value>
+  <data name="SortByRunCount" xml:space="preserve">
+    <value>Run count</value>
   </data>
-  <data name="SortByDateRunDescending" xml:space="preserve">
-    <value>Fecha de ejecución descendiente</value>
+  <data name="SortBySize" xml:space="preserve">
+    <value>Size</value>
   </data>
-  <data name="SortByExtensionAscending" xml:space="preserve">
-    <value>Extensión ascendiente</value>
-  </data>
-  <data name="SortByExtensionDescending" xml:space="preserve">
-    <value>Extensión descendiente</value>
-  </data>
-  <data name="SortByFileListFilenameAscending" xml:space="preserve">
-    <value>Lista de archivos por nombre ascendiente</value>
-  </data>
-  <data name="SortByFileListFilenameDescending" xml:space="preserve">
-    <value>Lista de archivos por nombre descendiente</value>
-  </data>
-  <data name="SortByNameAscending" xml:space="preserve">
-    <value>Nombre ascendiente</value>
-  </data>
-  <data name="SortByNameDescending" xml:space="preserve">
-    <value>Nombre descendiente</value>
-  </data>
-  <data name="SortByPathAscending" xml:space="preserve">
-    <value>Ubicación ascendiente</value>
-  </data>
-  <data name="SortByPathDescending" xml:space="preserve">
-    <value>Ubicación descendiente</value>
-  </data>
-  <data name="SortByRunCountAscending" xml:space="preserve">
-    <value>Número de ejecuciones ascendiente</value>
-  </data>
-  <data name="SortByRunCountDescending" xml:space="preserve">
-    <value>Número de ejecuciones descendiente</value>
-  </data>
-  <data name="SortBySizeAscending" xml:space="preserve">
-    <value>Tamaño ascendiente</value>
-  </data>
-  <data name="SortBySizeDescending" xml:space="preserve">
-    <value>Tamaño descendiente</value>
-  </data>
-  <data name="SortByTypeNameAscending" xml:space="preserve">
-    <value>Nombre de tipo ascendiente</value>
-  </data>
-  <data name="SortByTypeNameDescending" xml:space="preserve">
-    <value>Nombre de tipo descendiente</value>
+  <data name="SortByTypeName" xml:space="preserve">
+    <value>Type name</value>
   </data>
   <data name="ThemeDark" xml:space="preserve">
     <value>Oscuro</value>
   </data>
   <data name="ThemeLight" xml:space="preserve">
     <value>Claro</value>
-  </data>
-  <data name="ThemeMedium" xml:space="preserve">
-    <value>Mediano</value>
   </data>
   <data name="UserFilterAudio" xml:space="preserve">
     <value>Audio</value>
@@ -457,12 +424,39 @@
     <value>Ejecutable</value>
   </data>
   <data name="UserFilterPicture" xml:space="preserve">
-    <value>Foto</value>
+    <value>Imagen</value>
   </data>
   <data name="UserFilterPlaceholder" xml:space="preserve">
     <value>Más</value>
   </data>
   <data name="UserFilterVideo" xml:space="preserve">
     <value>Vídeo</value>
+  </data>
+  <data name="UpdateBannerText" xml:space="preserve">
+    <value>Actualización disponible:</value>
+  </data>
+  <data name="UpdateBannerSkip" xml:space="preserve">
+    <value>Saltar</value>
+  </data>
+  <data name="UpdateBannerDownload" xml:space="preserve">
+    <value>Descargar</value>
+  </data>
+  <data name="SettingsCheckForUpdates" xml:space="preserve">
+    <value>Buscar actualizaciones automáticamente</value>
+  </data>
+  <data name="SettingsSelectFirstResult" xml:space="preserve">
+    <value>Seleccionar primer resultado</value>
+  </data>
+  <data name="SettingsDoubleClickToOpen" xml:space="preserve">
+    <value>Doble clic para abrir</value>
+  </data>
+  <data name="SortDescending" xml:space="preserve">
+    <value>Descending</value>
+  </data>
+  <data name="SortAscending" xml:space="preserve">
+    <value>Ascending</value>
+  </data>
+  <data name="SettingsSearchAsYouType" xml:space="preserve">
+    <value>Search as you type</value>
   </data>
 </root>
